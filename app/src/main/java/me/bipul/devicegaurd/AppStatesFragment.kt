@@ -15,6 +15,7 @@ import me.bipul.devicegaurd.databinding.FragmentAppStatesBinding
 import android.app.usage.UsageStatsManager
 import android.content.pm.ApplicationInfo
 import android.os.Process
+import android.util.Log
 import java.util.*
 
 class AppStatesFragment : Fragment() {
@@ -154,10 +155,27 @@ class AppStatesFragment : Fragment() {
                 } else {
                     null
                 }
+
+
+
+
             } catch (_: PackageManager.NameNotFoundException) {
                 null
             }
         }.sortedByDescending { it.totalTimeInForeground }
+
+        // Debug: List all apps to find Facebook
+        Log.d("AppUsage", "=== ALL DETECTED APPS ===")
+        appList.forEach { appInfo ->
+            try {
+                val packageManager = requireContext().packageManager
+                val appInfoDetail = packageManager.getApplicationInfo(appInfo.packageName, 0)
+                val appName = packageManager.getApplicationLabel(appInfoDetail).toString()
+                Log.d("AppUsage", "App: $appName -> ${appInfo.packageName}")
+            } catch (e: Exception) {
+                Log.d("AppUsage", "Error getting app info for: ${appInfo.packageName}")
+            }
+        }
 
         appListAdapter.submitList(appList)
     }
