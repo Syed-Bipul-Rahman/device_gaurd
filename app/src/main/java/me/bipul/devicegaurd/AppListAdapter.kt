@@ -1,15 +1,19 @@
 package me.bipul.devicegaurd
 
+import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class AppListAdapter : ListAdapter<AppInfo, AppListAdapter.AppViewHolder>(AppDiffCallback()) {
 
@@ -40,6 +44,26 @@ class AppListAdapter : ListAdapter<AppInfo, AppListAdapter.AppViewHolder>(AppDif
                 "Not used recently"
             }
             usageTime.text = formatUsageTime(appInfo.totalTimeInForeground)
+
+            // Set click listener to launch the app
+            itemView.setOnClickListener {
+                launchApp(itemView.context, appInfo.packageName)
+            }
+        }
+
+        private fun launchApp(context: Context, packageName: String) {
+            try {
+                val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+                if (intent != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                } else {
+                    Toast.makeText(context, "Cannot launch this app", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error launching app: ${e.message}", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
 
         private fun formatUsageTime(millis: Long): String {

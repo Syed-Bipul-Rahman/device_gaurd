@@ -123,17 +123,36 @@ class AppStatesFragment : Fragment() {
             System.currentTimeMillis()
         ).associateBy { it.packageName }
 
+        // Define the exclusion list
+        val excludedPackages = setOf(
+            "com.oppo.quicksearchbox",
+            "com.google.android.gms",
+            "com.heytap.pictorial",
+            "com.google.android.marvin.talkback",
+            "com.google.android.as",
+            "com.facebook.services",
+            "com.google.android.as.oss",
+            "com.google.android.apps.wellbeing",
+            "com.google.android.captiveportallogin",
+            "com.google.ambient.streaming",
+            "com.google.android.modulemetadata",
+            "com.google.android.networkstack",
+            "com.nearme.statistics.rom",
+            "com.google.android.tts",
+            "com.google.android.partnersetup",
+            "com.google.mainline.telemetry",
+            "com.google.mainline.adservices",
+            "com.facebook.system",
+            "com.taboola.scoop",
+            "com.google.android.projection.gearhead",
+            "com.google.android.apps.carrier.carrierwifi",
+            "com.facebook.appmanager",
+            "com.google.android.inputmethod.latin",
+            "com.google.android.webview"
+        )
+
         // Get all installed apps
         val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-//        val userFacingSystemApps = listOf(
-//            "com.android.contacts",
-//            "com.google.android.contacts",
-//            "com.google.android.apps.photos",
-//            "com.android.dialer",
-//            "com.google.android.dialer",
-//            "com.android.gallery3d",
-//            "com.google.android.gallery3d"
-//        )
 
         val appList = installedApps.mapNotNull { appInfo ->
             try {
@@ -142,8 +161,8 @@ class AppStatesFragment : Fragment() {
                     (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
                 val packageName = appInfo.packageName
 
-                // Include user-installed apps, updated system apps, or specific user-facing system apps
-                if (!isSystemApp || isUpdatedSystemApp) {
+                // Include user-installed apps, updated system apps, and exclude specified packages
+                if ((!isSystemApp || isUpdatedSystemApp) && packageName !in excludedPackages) {
                     val usageStats = stats[packageName]
                     AppInfo(
                         packageName = packageName,
@@ -155,16 +174,12 @@ class AppStatesFragment : Fragment() {
                 } else {
                     null
                 }
-
-
-
-
             } catch (_: PackageManager.NameNotFoundException) {
                 null
             }
         }.sortedByDescending { it.totalTimeInForeground }
 
-        // Debug: List all apps to find Facebook
+        // Debug: List all apps to verify exclusion
         Log.d("AppUsage", "=== ALL DETECTED APPS ===")
         appList.forEach { appInfo ->
             try {
