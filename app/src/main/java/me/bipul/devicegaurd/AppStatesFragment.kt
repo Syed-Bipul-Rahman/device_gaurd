@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import me.bipul.devicegaurd.databinding.FragmentAppStatesBinding
 import android.app.usage.UsageStatsManager
+import android.content.pm.ApplicationInfo
 import android.os.Process
 import java.util.*
 
@@ -42,7 +43,7 @@ class AppStatesFragment : Fragment() {
 
         // Setup permission request button
         binding.btnRequestUsageAccess.setOnClickListener {
-            startActivityForResult(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS),2)
+            startActivityForResult(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS), 2)
         }
 
         // Update app list based on permission status
@@ -78,51 +79,51 @@ class AppStatesFragment : Fragment() {
     }
 
     //return list with system app
-    private fun loadAppUsageStats() {
-        val usageStatsManager = requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -1)
-        val stats = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            calendar.timeInMillis,
-            System.currentTimeMillis()
-        )
-
-        val packageManager = requireContext().packageManager
-        val appList = stats.mapNotNull { usageStats ->
-            try {
-                val appInfo = packageManager.getApplicationInfo(usageStats.packageName, 0)
-                AppInfo(
-                    packageName = usageStats.packageName,
-                    appName = packageManager.getApplicationLabel(appInfo).toString(),
-                    icon = packageManager.getApplicationIcon(appInfo),
-                    lastUsed = usageStats.lastTimeUsed,
-                    totalTimeInForeground = usageStats.totalTimeInForeground
-                )
-            } catch (e: PackageManager.NameNotFoundException) {
-                null
-            }
-        }.sortedByDescending { it.totalTimeInForeground }
-
-        appListAdapter.submitList(appList)
-    }
-
+//    private fun loadAppUsageStats() {
+//        val usageStatsManager = requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+//        val calendar = Calendar.getInstance()
+//        calendar.add(Calendar.DAY_OF_YEAR, -1)
+//        val stats = usageStatsManager.queryUsageStats(
+//            UsageStatsManager.INTERVAL_DAILY,
+//            calendar.timeInMillis,
+//            System.currentTimeMillis()
+//        )
+//
+//        val packageManager = requireContext().packageManager
+//        val appList = stats.mapNotNull { usageStats ->
+//            try {
+//                val appInfo = packageManager.getApplicationInfo(usageStats.packageName, 0)
+//                AppInfo(
+//                    packageName = usageStats.packageName,
+//                    appName = packageManager.getApplicationLabel(appInfo).toString(),
+//                    icon = packageManager.getApplicationIcon(appInfo),
+//                    lastUsed = usageStats.lastTimeUsed,
+//                    totalTimeInForeground = usageStats.totalTimeInForeground
+//                )
+//            } catch (e: PackageManager.NameNotFoundException) {
+//                null
+//            }
+//        }.sortedByDescending { it.totalTimeInForeground }
+//
+//        appListAdapter.submitList(appList)
+//    }
 
 
     //return list without system app
-//    private fun loadAppUsageStats() {
-//        val usageStatsManager = requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-//        val packageManager = requireContext().packageManager
-//        val calendar = Calendar.getInstance()
-//        calendar.add(Calendar.WEEK_OF_YEAR, -1) // Use weekly interval
-//        val stats = usageStatsManager.queryUsageStats(
-//            UsageStatsManager.INTERVAL_WEEKLY,
-//            calendar.timeInMillis,
-//            System.currentTimeMillis()
-//        ).associateBy { it.packageName }
-//
-//        // Get all installed apps
-//        val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+    private fun loadAppUsageStats() {
+        val usageStatsManager =
+            requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val packageManager = requireContext().packageManager
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.WEEK_OF_YEAR, -1) // Use weekly interval
+        val stats = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_WEEKLY,
+            calendar.timeInMillis,
+            System.currentTimeMillis()
+        ).associateBy { it.packageName }
+
+        // Get all installed apps
+        val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 //        val userFacingSystemApps = listOf(
 //            "com.android.contacts",
 //            "com.google.android.contacts",
@@ -132,31 +133,32 @@ class AppStatesFragment : Fragment() {
 //            "com.android.gallery3d",
 //            "com.google.android.gallery3d"
 //        )
-//
-//        val appList = installedApps.mapNotNull { appInfo ->
-//            try {
-//                val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-//                val isUpdatedSystemApp = (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-//                val packageName = appInfo.packageName
-//
-//                // Include user-installed apps, updated system apps, or specific user-facing system apps
-//                if (!isSystemApp || isUpdatedSystemApp || packageName in userFacingSystemApps) {
-//                    val usageStats = stats[packageName]
-//                    AppInfo(
-//                        packageName = packageName,
-//                        appName = packageManager.getApplicationLabel(appInfo).toString(),
-//                        icon = packageManager.getApplicationIcon(appInfo),
-//                        lastUsed = usageStats?.lastTimeUsed ?: 0L,
-//                        totalTimeInForeground = usageStats?.totalTimeInForeground ?: 0L
-//                    )
-//                } else {
-//                    null
-//                }
-//            } catch (e: PackageManager.NameNotFoundException) {
-//                null
-//            }
-//        }.sortedByDescending { it.totalTimeInForeground }
-//
-//        appListAdapter.submitList(appList)
-//    }
+
+        val appList = installedApps.mapNotNull { appInfo ->
+            try {
+                val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                val isUpdatedSystemApp =
+                    (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                val packageName = appInfo.packageName
+
+                // Include user-installed apps, updated system apps, or specific user-facing system apps
+                if (!isSystemApp || isUpdatedSystemApp) {
+                    val usageStats = stats[packageName]
+                    AppInfo(
+                        packageName = packageName,
+                        appName = packageManager.getApplicationLabel(appInfo).toString(),
+                        icon = packageManager.getApplicationIcon(appInfo),
+                        lastUsed = usageStats?.lastTimeUsed ?: 0L,
+                        totalTimeInForeground = usageStats?.totalTimeInForeground ?: 0L
+                    )
+                } else {
+                    null
+                }
+            } catch (_: PackageManager.NameNotFoundException) {
+                null
+            }
+        }.sortedByDescending { it.totalTimeInForeground }
+
+        appListAdapter.submitList(appList)
+    }
 }
