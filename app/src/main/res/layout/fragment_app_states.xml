@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Permission Prompt (Shown if PACKAGE_USAGE_STATS not granted) -->
+    <TextView
+        android:id="@+id/permissionPrompt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please grant Usage Access permission in Settings to view app states."
+        android:textColor="#FF5722"
+        android:textSize="16sp"
+        android:visibility="gone"
+        android:padding="16dp"
+        android:gravity="center" />
+
+    <!-- RecyclerView for App List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/appListRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Button to Request Usage Access -->
+    <Button
+        android:id="@+id/btnRequestUsageAccess"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Grant Usage Access"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</LinearLayout>
