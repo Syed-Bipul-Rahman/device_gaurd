@@ -62,7 +62,8 @@ class DeviceStatusFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Initialize device admin
-        devicePolicyManager = requireContext().getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        devicePolicyManager =
+            requireContext().getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         componentName = ComponentName(requireContext(), MyDeviceAdminReceiver::class.java)
 
         // Set device name
@@ -83,6 +84,9 @@ class DeviceStatusFragment : Fragment() {
         binding.btnLockDevice.setOnClickListener {
             lockDevice()
         }
+        binding.wipeData.setOnClickListener {
+            wipeData()
+        }
 
         updateButtonStates()
     }
@@ -94,7 +98,8 @@ class DeviceStatusFragment : Fragment() {
     }
 
     private fun updateInitialBatteryInfo() {
-        val batteryManager = requireContext().getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val batteryManager =
+            requireContext().getSystemService(Context.BATTERY_SERVICE) as BatteryManager
         val batteryLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         } else {
@@ -142,6 +147,7 @@ class DeviceStatusFragment : Fragment() {
                     )
                 )
             }
+
             else -> {
                 binding.batteryStatus.setTextColor(
                     ContextCompat.getColor(
@@ -164,6 +170,7 @@ class DeviceStatusFragment : Fragment() {
                     )
                 )
             }
+
             BatteryManager.BATTERY_HEALTH_COLD, BatteryManager.BATTERY_HEALTH_OVERHEAT -> {
                 binding.batteryHealth.setTextColor(
                     ContextCompat.getColor(
@@ -172,6 +179,7 @@ class DeviceStatusFragment : Fragment() {
                     )
                 )
             }
+
             else -> {
                 binding.batteryHealth.setTextColor(
                     ContextCompat.getColor(
@@ -212,7 +220,10 @@ class DeviceStatusFragment : Fragment() {
     }
 
     private fun getWifiNetworkName(): String {
-        return if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_WIFI_STATE)
+        return if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_WIFI_STATE
+            )
             == PackageManager.PERMISSION_GRANTED
         ) {
             val wifiManager =
@@ -238,10 +249,14 @@ class DeviceStatusFragment : Fragment() {
     }
 
     private fun getMobileNetworkType(): String {
-        return if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_PHONE_STATE)
+        return if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_PHONE_STATE
+            )
             == PackageManager.PERMISSION_GRANTED
         ) {
-            val telephonyManager = requireContext().getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            val telephonyManager =
+                requireContext().getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             when (telephonyManager.networkType) {
                 TelephonyManager.NETWORK_TYPE_LTE -> "4G LTE"
                 TelephonyManager.NETWORK_TYPE_HSPAP, TelephonyManager.NETWORK_TYPE_HSPA -> "3G+"
@@ -256,10 +271,14 @@ class DeviceStatusFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun updateSimInfo() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_PHONE_STATE)
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_PHONE_STATE
+            )
             == PackageManager.PERMISSION_GRANTED
         ) {
-            val telephonyManager = requireContext().getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            val telephonyManager =
+                requireContext().getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
             // Operator
             val operatorName =
@@ -303,6 +322,7 @@ class DeviceStatusFragment : Fragment() {
                         )
                     )
                 }
+
                 else -> {
                     binding.networkStatus.setTextColor(
                         ContextCompat.getColor(
@@ -353,7 +373,8 @@ class DeviceStatusFragment : Fragment() {
             }
             startActivityForResult(intent, 1)
         } else {
-            Toast.makeText(requireContext(), "Device admin already enabled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Device admin already enabled", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -362,7 +383,18 @@ class DeviceStatusFragment : Fragment() {
             devicePolicyManager.lockNow()
             Toast.makeText(requireContext(), "Device locked", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(requireContext(), "Device admin permission required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Device admin permission required", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    fun wipeData() {
+        if (devicePolicyManager.isAdminActive(componentName)) {
+            devicePolicyManager.wipeData(0)
+            Toast.makeText(requireContext(), "Device data wiped", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Device admin permission required", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -370,13 +402,19 @@ class DeviceStatusFragment : Fragment() {
         val isAdminActive = devicePolicyManager.isAdminActive(componentName)
         binding.btnRequestAdmin.isEnabled = !isAdminActive
         binding.btnLockDevice.isEnabled = isAdminActive
+        binding.wipeData.isEnabled = isAdminActive
     }
 
     fun onAdminPermissionResult(resultCode: Int) {
         if (resultCode == RESULT_OK) {
-            Toast.makeText(requireContext(), "Device admin enabled successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Device admin enabled successfully",
+                Toast.LENGTH_SHORT
+            ).show()
         } else {
-            Toast.makeText(requireContext(), "Device admin permission denied", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Device admin permission denied", Toast.LENGTH_SHORT)
+                .show()
         }
         updateButtonStates()
     }
